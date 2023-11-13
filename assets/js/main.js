@@ -265,7 +265,7 @@
  * Contact form send button
  */
 
-const scriptURL = 'https://script.google.com/macros/s/AKfycbydzXD9eK59XRupd3lJVzR71OtUtc7TuRWK-BM8j4Zu1h0h_gP8CMGfT0LxIk7Nz5WpQw/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxNBle1x0DOSY10-8NY7v8lKr4uWFhsjq9qnJ2kbvJvvK0oxm3hiTMFUmZ90OIkVw4S/exec';
 const form = document.forms['submit-to-google-sheet'];
 
 form.addEventListener('submit', e => {
