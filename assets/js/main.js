@@ -265,19 +265,73 @@
  * Contact form send button
  */
 
-const scriptURL = 'https://script.google.com/macros/s/AKfycbz0Uh1bJgvsRFUm_lTVW02nHTSDZE7YA3aS_iamHptBZ0sxWlBQNIsO84mE4PcL-3Po/exec'
+const scriptURL = 'https://script.google.com/macros/s/AKfycbx7Fi6mMUS9QTR-hoM7kgYRWnxG6yOY60LELuvgRDhS4s5dmTMZ0SxKH4Qb5h9UcI0p/exec';
+const form = document.forms['submit-to-google-sheet'];
 
-const form = document.forms['contact-form']
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-form.addEventListener('submit', e => {
-  
-  e.preventDefault()
-  
-  fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-  .then(response => alert("Thank you! Form is submitted" ))
-  .then(() => { window.location.reload(); })
-  .catch(error => console.error('Error!', error.message))
-})
+    const loadingMessage = document.querySelector('.loading');
+    const sentMessage = document.querySelector('.sent-message');
+    const errorMessage = document.querySelector('.error-message');
+
+    // Hide previous messages
+    loadingMessage.style.display = 'none';
+    sentMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
+
+    // Validate form before submission
+    if (!validateForm()) {
+        errorMessage.textContent = "Please fill in all fields correctly.";
+        errorMessage.style.display = 'block';
+        return;
+    }
+
+    // Show loading message
+    loadingMessage.style.display = 'block';
+
+    try {
+        const formData = new FormData(form);
+        
+        // Timeout logic to prevent indefinite loading
+        const response = await Promise.race([
+            fetch(scriptURL, { method: 'POST', body: formData }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Request timed out")), 10000))
+        ]);
+
+        if (!response.ok) {
+            throw new Error(`Network error: ${response.status}`);
+        }
+
+        // Display success message
+        loadingMessage.style.display = 'none';
+        sentMessage.style.display = 'block';
+        form.reset();
+    } catch (error) {
+        console.error('Error!', error.message);
+
+        // Display error message
+        loadingMessage.style.display = 'none';
+        errorMessage.textContent = `Failed to submit: ${error.message}`;
+        errorMessage.style.display = 'block';
+    }
+});
+
+// Form validation function
+function validateForm() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    if (name === '' || email === '' || message === '') {
+        return false;
+    }
+
+    // Basic email format validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+}
+
 
 /**
  * Preloader functions and event listeners
