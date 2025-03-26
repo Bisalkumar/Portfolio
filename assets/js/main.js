@@ -268,37 +268,69 @@
 const scriptURL = 'https://script.google.com/macros/s/AKfycbybe0wB55KeA11sHme8M5CkBOfymMBMTUNMgEzEvyE4RnVVCCbE7iU7ySI0pnhsK7Bv/exec';
 const form = document.forms['submit-to-google-sheet'];
 
-form.addEventListener('submit', e => {
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Reset state: hide all messages when the form is re-submitted
-    document.querySelector('.loading').style.display = 'none';
-    document.querySelector('.sent-message').style.display = 'none';
-    document.querySelector('.error-message').style.display = 'none';
+    const loadingMessage = document.querySelector('.loading');
+    const sentMessage = document.querySelector('.sent-message');
+    const errorMessage = document.querySelector('.error-message');
 
-    // Show the loading message
-    document.querySelector('.loading').style.display = 'block';
+    // Hide previous messages
+    loadingMessage.style.display = 'none';
+    sentMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
 
-    fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-        .then(response => {
-            if(!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            
-            // Hide the loading message and show the sent message
-            document.querySelector('.loading').style.display = 'none';
-            document.querySelector('.sent-message').style.display = 'block';
-            form.reset();
-        })
-        .catch(error => {
-            console.error('Error!', error.message);
-            
-            // Display the error message and hide the loading message
-            document.querySelector('.loading').style.display = 'none';
-            document.querySelector('.error-message').style.display = 'block';
-            document.querySelector('.error-message').textContent = "There was an error submitting the form. Please try again.";
-        });
+    // Validate form before submission
+    if (!validateForm()) {
+        errorMessage.textContent = "Please fill in all fields correctly.";
+        errorMessage.style.display = 'block';
+        return;
+    }
+
+    // Show loading message
+    loadingMessage.style.display = 'block';
+
+    try {
+        const formData = new FormData(form);
+        
+        // Timeout logic to prevent indefinite loading
+        const response = await Promise.race([
+            fetch(scriptURL, { method: 'POST', body: formData }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Request timed out")), 10000))
+        ]);
+
+        if (!response.ok) {
+            throw new Error(`Network error: ${response.status}`);
+        }
+
+        // Display success message
+        loadingMessage.style.display = 'none';
+        sentMessage.style.display = 'block';
+        form.reset();
+    } catch (error) {
+        console.error('Error!', error.message);
+
+        // Display error message
+        loadingMessage.style.display = 'none';
+        errorMessage.textContent = `Failed to submit: ${error.message}`;
+        errorMessage.style.display = 'block';
+    }
 });
+
+// Form validation function
+function validateForm() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    if (name === '' || email === '' || message === '') {
+        return false;
+    }
+
+    // Basic email format validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+}
 
 /**
  * Preloader functions and event listeners
