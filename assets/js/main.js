@@ -261,11 +261,11 @@
 
 })()
 
-/**
+//**
  * Contact form send button
  */
 
-const scriptURL = "/api/contact";
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwObRz4lfBUn4G7tcE_hcmcU-2zXTsxj7aQbGWgZWgiQGNnxsr_8Dslwn6NAOJjpVW8_Q/exec';
 const form = document.forms['submit-to-google-sheet'];
 
 form.addEventListener('submit', async (e) => {
@@ -300,7 +300,7 @@ form.addEventListener('submit', async (e) => {
         ]);
 
         if (!response.ok) {
-            throw new Error(`Network error: ${response.status}`);
+            throw new Error(Network error: ${response.status});
         }
 
         // Display success message
@@ -312,7 +312,7 @@ form.addEventListener('submit', async (e) => {
 
         // Display error message
         loadingMessage.style.display = 'none';
-        errorMessage.textContent = `Failed to submit: ${error.message}`;
+        errorMessage.textContent = Failed to submit: ${error.message};
         errorMessage.style.display = 'block';
     }
 });
