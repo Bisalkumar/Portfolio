@@ -261,7 +261,7 @@
 
 })()
 
-//**
+/**
  * Contact form send button
  */
 
