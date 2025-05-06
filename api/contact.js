@@ -1,28 +1,40 @@
+export const config = {
+  api: {
+    bodyParser: false, // We will manually parse the form data
+  },
+};
+
 export default async function handler(req, res) {
-  // ✅ Add CORS headers
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Handle preflight request (for CORS with OPTIONS method)
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  // ✅ Handle POST request
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
   try {
+    const buffers = [];
+
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+
+    const bodyStr = Buffer.concat(buffers).toString();
+    const searchParams = new URLSearchParams(bodyStr);
+
     const response = await fetch(
       "https://script.google.com/macros/s/AKfycbwObRz4lfBUn4G7tcE_hcmcU-2zXTsxj7aQbGWgZWgiQGNnxsr_8Dslwn6NAOJjpVW8_Q/exec",
       {
         method: "POST",
-        body: req.body,
+        body: searchParams,
         headers: {
-          "Content-Type":
-            req.headers["content-type"] || "application/x-www-form-urlencoded",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
       }
     );
